@@ -21,16 +21,38 @@ export function FinalStep({ data, calculation, onUpdate, onSubmit }: FinalStepPr
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Simulation d'envoi
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Demande envoyée avec succès !",
-      description: "Nous vous contacterons dans les 24h pour votre analyse gratuite.",
-    });
-    
-    setIsSubmitting(false);
-    onSubmit();
+    try {
+      const response = await fetch('https://teeebalqimwaqonfnoaw.supabase.co/functions/v1/send-quiz-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data,
+          calculation
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'envoi');
+      }
+
+      toast({
+        title: "Demande envoyée avec succès !",
+        description: "Nous vous contacterons dans les 24h pour votre analyse gratuite.",
+      });
+      
+      onSubmit();
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast({
+        title: "Erreur lors de l'envoi",
+        description: "Une erreur s'est produite. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const canSubmit = data.firstName && data.lastName && data.email && 
